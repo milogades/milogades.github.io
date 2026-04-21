@@ -200,6 +200,31 @@
       transform: translateY(-1px);
     }
 
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4rem;
+      align-items: center;
+      width: 100%;
+      max-width: 1100px;
+      position: relative;
+    }
+
+    .hero-photo {
+      width: 260px;
+      height: 320px;
+      object-fit: cover;
+      object-position: center top;
+      border: 1px solid var(--border);
+      filter: grayscale(20%);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-photo { width: 120px; height: 150px; justify-self: end; }
+    }
+
     .hero-scroll {
       position: absolute;
       bottom: 2.5rem;
@@ -565,21 +590,24 @@
   <div class="hero">
     <div class="hero-grid-bg"></div>
     <div class="hero-glow"></div>
-    <div class="hero-content">
-      <div class="hero-tag">Desarrollador Web en Formación · DAW</div>
-      <h1>
-        Miguel
-        <span>López León</span>
-      </h1>
-      <p class="hero-desc">
-        Estudiante de CFGS Desarrollo de Aplicaciones Web en UNIVERSAE.
-        Construyendo proyectos con Java, HTML, CSS, XML y más.
-        Buscando prácticas FCT en modalidad telemática — octubre 2026.
-      </p>
-      <div class="hero-cta">
-        <a href="https://github.com/milogades" target="_blank" class="btn btn-primary">Ver GitHub →</a>
-        <a href="#contacto" class="btn btn-secondary">Contactar</a>
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-tag">Desarrollador Web en Formación · DAW</div>
+        <h1>
+          Miguel
+          <span>López León</span>
+        </h1>
+        <p class="hero-desc">
+          Estudiante de CFGS Desarrollo de Aplicaciones Web en UNIVERSAE.
+          Construyendo proyectos con Java, HTML, CSS, XML y más.
+          Buscando prácticas FCT en modalidad telemática — octubre 2026.
+        </p>
+        <div class="hero-cta">
+          <a href="https://github.com/milogades" target="_blank" class="btn btn-primary">Ver GitHub →</a>
+          <a href="#contacto" class="btn btn-secondary">Contactar</a>
+        </div>
       </div>
+      <img src="foto.jpg" alt="Miguel López León" class="hero-photo" />
     </div>
     <div class="hero-scroll">scroll</div>
   </div>
