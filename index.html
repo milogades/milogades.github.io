@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miguel López León · Desarrollador Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #1e1e1e;
+      --accent: #00e5a0;
+      --accent2: #0066ff;
+      --text: #f0f0f0;
+      --muted: #666;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      overflow-x: hidden;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 8rem 2.5rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.4;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+      top: 10%;
+      right: -100px;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 900px;
+    }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 2rem;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 span {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(240,240,240,0.3);
+    }
+
+    .hero-desc {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #00ffb3;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--muted);
+      transform: translateY(-1px);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 2.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      writing-mode: vertical-rl;
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 6rem 2.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      max-width: 200px;
+    }
+
+    /* SOBRE MÍ */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-text h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .about-text p {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 1.75rem;
+    }
+
+    .stat-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .skill-group {
+      background: var(--surface);
+      padding: 2rem;
+    }
+
+    .skill-group-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .tag:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* FORMACIÓN */
+    .edu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .edu-item {
+      background: var(--surface);
+      padding: 2rem 2.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 2rem;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .edu-item:hover { background: #161616; }
+
+    .edu-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--muted);
+      flex-shrink: 0;
+    }
+
+    .edu-item.active .edu-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(0,229,160,0.4);
+    }
+
+    .edu-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .edu-school {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .edu-year {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* PROYECTOS */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .project-card {
+      background: var(--surface);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: background 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .project-card:hover { background: #161616; }
+
+    .project-card.wip {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .project-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .project-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .project-desc {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .project-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 0.25rem 0.6rem;
+      background: var(--border);
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    .project-arrow {
+      font-size: 1.2rem;
+      color: var(--accent);
+      align-self: flex-end;
+    }
+
+    /* CONTACTO */
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .contact-text h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .contact-text p {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.75rem;
+      background: var(--surface);
+      text-decoration: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      transition: background 0.2s;
+    }
+
+    .contact-link:hover { background: #161616; }
+
+    .contact-link-label { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.1em; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer p {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-tag { animation: fadeUp 0.6s ease 0.1s both; }
+    .hero h1 { animation: fadeUp 0.6s ease 0.2s both; }
+    .hero-desc { animation: fadeUp 0.6s ease 0.35s both; }
+    .hero-cta { animation: fadeUp 0.6s ease 0.5s both; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      .hero { padding: 6rem 1.25rem 3rem; }
+      section { padding: 4rem 1.25rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .contact-wrapper { grid-template-columns: 1fr; gap: 2.5rem; }
+      .edu-item { grid-template-columns: auto 1fr; }
+      .edu-year { display: none; }
+      footer { flex-direction: column; gap: 0.75rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-logo">milogades.github.io</span>
+    <ul class="nav-links">
+      <li><a href="#sobre-mi">sobre mí</a></li>
+      <li><a href="#skills">skills</a></li>
+      <li><a href="#formacion">formación</a></li>
+      <li><a href="#proyectos">proyectos</a></li>
+      <li><a href="#contacto">contacto</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <div class="hero-tag">Desarrollador Web en Formación · DAW</div>
+      <h1>
+        Miguel
+        <span>López León</span>
+      </h1>
+      <p class="hero-desc">
+        Estudiante de CFGS Desarrollo de Aplicaciones Web en UNIVERSAE.
+        Construyendo proyectos con Java, HTML, CSS, XML y más.
+        Buscando prácticas FCT en modalidad telemática — octubre 2026.
+      </p>
+      <div class="hero-cta">
+        <a href="https://github.com/milogades" target="_blank" class="btn btn-primary">Ver GitHub →</a>
+        <a href="#contacto" class="btn btn-secondary">Contactar</a>
+      </div>
+    </div>
+    <div class="hero-scroll">scroll</div>
+  </div>
+
+  <section id="sobre-mi">
+    <div class="section-label">01 — sobre mí</div>
+    <div class="about-grid">
+      <div class="about-text">
+        <h2>Código,<br/>aprendizaje<br/>y constancia.</h2>
+        <p>Soy Miguel, desarrollador web en formación con base técnica en telecomunicaciones. Actualmente cursando DAW en UNIVERSAE, con foco en desarrollo web y programación orientada a objetos.</p>
+        <p>Perfil autodidacta, con capacidad de adaptación rápida y ganas de crecer en un entorno real de desarrollo.</p>
+        <p style="color: var(--accent); font-size:0.82rem;">📍 Cádiz, España · Disponible para prácticas remotas</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat">
+          <div class="stat-num">119</div>
+          <div class="stat-label">archivos en GitHub</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">4+</div>
+          <div class="stat-label">tecnologías estudiadas</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">2026</div>
+          <div class="stat-label">disponible para FCT</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">B1</div>
+          <div class="stat-label">nivel inglés</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="section-label">02 — habilidades</div>
+    <div class="skills-grid">
+      <div class="skill-group">
+        <div class="skill-group-title">Web</div>
+        <div class="skill-tags">
+          <span class="tag">HTML5</span>
+          <span class="tag">CSS3</span>
+          <span class="tag">JavaScript</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Programación</div>
+        <div class="skill-tags">
+          <span class="tag">Java</span>
+          <span class="tag">OOP</span>
+          <span class="tag">JPA</span>
+          <span class="tag">AWT/Swing</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">XML & Datos</div>
+        <div class="skill-tags">
+          <span class="tag">XML</span>
+          <span class="tag">DTD</span>
+          <span class="tag">XSD</span>
+          <span class="tag">XPath</span>
+          <span class="tag">XSLT</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Herramientas</div>
+        <div class="skill-tags">
+          <span class="tag">Git</span>
+          <span class="tag">GitHub</span>
+          <span class="tag">VS Code</span>
+          <span class="tag">Eclipse</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="formacion">
+    <div class="section-label">03 — formación</div>
+    <div class="edu-list">
+      <div class="edu-item active">
+        <div class="edu-dot"></div>
+        <div>
+          <div class="edu-title">CFGS Desarrollo de Aplicaciones Web (DAW)</div>
+          <div class="edu-school">UNIVERSAE · Online</div>
+        </div>
+        <div class="edu-year">2024 – 2026</div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-dot"></div>
+        <div>
+          <div class="edu-title">CFGS Sistemas de Telecomunicaciones e Informáticos</div>
+          <div class="edu-school">IES Fernando Aguilar Quignon · Cádiz</div>
+        </div>
+        <div class="edu-year">2019 – 2021</div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-dot"></div>
+        <div>
+          <div class="edu-title">Bachillerato · Humanidades y Ciencias Sociales</div>
+          <div class="edu-school">Colegio La Salle-Viña · Cádiz</div>
+        </div>
+        <div class="edu-year">2014</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="proyectos">
+    <div class="section-label">04 — proyectos</div>
+    <div class="projects-grid">
+      <a href="https://github.com/milogades/DAW-UNIVERSAE" target="_blank" class="project-card">
+        <div class="project-num">001</div>
+        <div class="project-title">DAW · Ejercicios & Prácticas</div>
+        <div class="project-desc">Repositorio con todos los ejercicios del ciclo: Java, HTML/CSS, XML/XSLT y más. Organizado por temas y módulos.</div>
+        <div class="project-tags">
+          <span class="project-tag">Java</span>
+          <span class="project-tag">HTML</span>
+          <span class="project-tag">XML</span>
+          <span class="project-tag">CSS</span>
+        </div>
+        <div class="project-arrow">↗</div>
+      </a>
+      <div class="project-card wip">
+        <div class="project-num">002</div>
+        <div class="project-title">Próximamente</div>
+        <div class="project-desc">Nuevos proyectos en desarrollo durante el ciclo y las prácticas FCT.</div>
+        <div class="project-tags">
+          <span class="project-tag">WIP</span>
+        </div>
+      </div>
+      <div class="project-card wip">
+        <div class="project-num">003</div>
+        <div class="project-title">Próximamente</div>
+        <div class="project-desc">Más proyectos por venir.</div>
+        <div class="project-tags">
+          <span class="project-tag">WIP</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto">
+    <div class="section-label">05 — contacto</div>
+    <div class="contact-wrapper">
+      <div class="contact-text">
+        <h2>¿Hablamos?</h2>
+        <p>Estoy buscando prácticas FCT en modalidad telemática para octubre 2026. Si tienes una oportunidad o simplemente quieres conectar, escríbeme.</p>
+        <a href="mailto:milo.gadir@gmail.com" class="btn btn-primary">Enviar email →</a>
+      </div>
+      <div class="contact-links">
+        <a href="mailto:milo.gadir@gmail.com" class="contact-link">
+          <span>milo.gadir@gmail.com</span>
+          <span class="contact-link-label">EMAIL</span>
+        </a>
+        <a href="https://github.com/milogades" target="_blank" class="contact-link">
+          <span>github.com/milogades</span>
+          <span class="contact-link-label">GITHUB</span>
+        </a>
+        <a href="https://linkedin.com/in/miguel-lopez-leon" target="_blank" class="contact-link">
+          <span>LinkedIn</span>
+          <span class="contact-link-label">LINKEDIN</span>
+        </a>
+        <div class="contact-link" style="cursor:default;">
+          <span>Cádiz, España</span>
+          <span class="contact-link-label">UBICACIÓN</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Miguel López León</p>
+    <p>Desarrollado con HTML & CSS · Publicado en GitHub Pages</p>
+  </footer>
+
+</body>
+</html>
