@@ -196,6 +196,15 @@
       text-overflow: ellipsis;
     }
 
+    .item-note {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .qty-controls {
       display: flex;
       align-items: center;
@@ -285,6 +294,16 @@
 
     .edit-btn.up, .edit-btn.down {
       background: #334155;
+    }
+
+    .edit-btn.note {
+      background: #1e3a5f;
+      color: var(--accent);
+    }
+
+    .edit-btn.note.has-note {
+      background: var(--accent);
+      color: #0f172a;
     }
 
     .edit-btn.delete {
@@ -416,7 +435,7 @@
 
     .list-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       padding: 10px 0;
       border-bottom: 1px solid var(--border);
@@ -428,17 +447,28 @@
 
     .list-emoji {
       font-size: 1.5rem;
+      margin-top: 2px;
+    }
+
+    .list-content {
+      flex: 1;
     }
 
     .list-name {
-      flex: 1;
       font-weight: 500;
+    }
+
+    .list-note {
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 2px;
     }
 
     .list-qty {
       font-weight: 700;
       color: var(--accent);
       font-size: 1.05rem;
+      margin-top: 2px;
     }
 
     .empty-state {
@@ -558,7 +588,7 @@
 
   <main>
     <div class="edit-hint">
-      Modo edición: usa ↑ ↓ para ordenar y 🗑️ para eliminar productos
+      Modo edición: ↑↓ ordenar · 📝 nota · 🗑️ eliminar
     </div>
 
     <div class="add-custom">
@@ -669,8 +699,9 @@
     // ========== ESTADO ==========
     let quantities = {};
     let customItems = [];
-    let deletedIds = [];          // ids de productos por defecto que el usuario eliminó
-    let customOrder = [];         // orden personalizado de todos los ids visibles
+    let deletedIds = [];
+    let customOrder = [];
+    let notes = {};               // { id: "texto de la nota" }
     let editMode = false;
 
     // Cargar de localStorage
@@ -680,11 +711,13 @@
         const savedCustom = localStorage.getItem('listaCompra_custom');
         const savedDeleted = localStorage.getItem('listaCompra_deleted');
         const savedOrder = localStorage.getItem('listaCompra_order');
+        const savedNotes = localStorage.getItem('listaCompra_notes');
 
         if (savedQty) quantities = JSON.parse(savedQty);
         if (savedCustom) customItems = JSON.parse(savedCustom);
         if (savedDeleted) deletedIds = JSON.parse(savedDeleted);
         if (savedOrder) customOrder = JSON.parse(savedOrder);
+        if (savedNotes) notes = JSON.parse(savedNotes);
       } catch (e) {
         console.warn('Error cargando estado', e);
       }
@@ -695,6 +728,7 @@
       localStorage.setItem('listaCompra_custom', JSON.stringify(customItems));
       localStorage.setItem('listaCompra_deleted', JSON.stringify(deletedIds));
       localStorage.setItem('listaCompra_order', JSON.stringify(customOrder));
+      localStorage.setItem('listaCompra_notes', JSON.stringify(notes));
     }
 
     // ========== HELPERS ==========
@@ -707,14 +741,12 @@
       const visible = getAllVisibleItems();
       const visibleIds = visible.map(i => i.id);
 
-      // Si no hay orden guardado, crear uno por defecto (por categorías)
       if (customOrder.length === 0) {
         customOrder = visibleIds;
         saveState();
         return;
       }
 
-      // Mantener solo ids que siguen existiendo y añadir los nuevos al final
       customOrder = customOrder.filter(id => visibleIds.includes(id));
       visibleIds.forEach(id => {
         if (!customOrder.includes(id)) customOrder.push(id);
@@ -739,7 +771,6 @@
       const ordered = getOrderedItems();
       const q = filter.trim().toLowerCase();
 
-      // Filtrar por búsqueda
       const filtered = ordered.filter(item => {
         if (!q) return true;
         return item.name.toLowerCase().includes(q);
@@ -754,7 +785,6 @@
         return;
       }
 
-      // Agrupar por categoría manteniendo el orden relativo
       const byCat = {};
       const catOrder = [];
       filtered.forEach(item => {
@@ -772,13 +802,14 @@
           <div class="category-title">${cat}</div>
           <div class="items-grid">`;
 
-        items.forEach((item, idxInCat) => {
+        items.forEach(item => {
           const globalIdx = customOrder.indexOf(item.id);
           const qty = quantities[item.id] || 0;
           const active = qty > 0 ? 'active' : '';
           const zeroClass = qty === 0 ? 'zero' : '';
+          const note = notes[item.id] || '';
+          const hasNote = note.length > 0;
 
-          // Para deshabilitar flechas
           const isFirst = globalIdx === 0;
           const isLast = globalIdx === customOrder.length - 1;
 
@@ -787,6 +818,7 @@
               <div class="item-emoji">${item.emoji}</div>
               <div class="item-info">
                 <div class="item-name">${item.name}</div>
+                ${hasNote ? `<div class="item-note">📝 ${note}</div>` : ''}
               </div>
               <div class="qty-controls">
                 <button class="qty-btn minus" data-id="${item.id}" aria-label="Quitar">−</button>
@@ -796,6 +828,7 @@
               <div class="edit-controls">
                 <button class="edit-btn up" data-id="${item.id}" ${isFirst ? 'disabled' : ''} title="Subir">↑</button>
                 <button class="edit-btn down" data-id="${item.id}" ${isLast ? 'disabled' : ''} title="Bajar">↓</button>
+                <button class="edit-btn note ${hasNote ? 'has-note' : ''}" data-id="${item.id}" title="Añadir nota">📝</button>
                 <button class="edit-btn delete" data-id="${item.id}" title="Eliminar">🗑️</button>
               </div>
             </div>`;
@@ -849,10 +882,29 @@
       const newIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (newIdx < 0 || newIdx >= customOrder.length) return;
 
-      // Swap
       [customOrder[idx], customOrder[newIdx]] = [customOrder[newIdx], customOrder[idx]];
       saveState();
       renderItems(document.getElementById('searchInput').value);
+    }
+
+    function editNote(id) {
+      const item = getAllVisibleItems().find(i => i.id === id);
+      if (!item) return;
+
+      const current = notes[id] || '';
+      const text = prompt(`Nota para "${item.name}":\n(deja vacío para borrar)`, current);
+
+      if (text === null) return; // canceló
+
+      const trimmed = text.trim();
+      if (trimmed) {
+        notes[id] = trimmed;
+      } else {
+        delete notes[id];
+      }
+      saveState();
+      renderItems(document.getElementById('searchInput').value);
+      showToast(trimmed ? 'Nota guardada' : 'Nota eliminada');
     }
 
     function deleteItem(id) {
@@ -866,11 +918,9 @@
 
       if (!confirm(msg)) return;
 
-      // Quitar del orden
       customOrder = customOrder.filter(x => x !== id);
-
-      // Quitar cantidad
       delete quantities[id];
+      delete notes[id];
 
       if (isCustom) {
         customItems = customItems.filter(c => c.id !== id);
@@ -896,7 +946,7 @@
         cat: 'Personalizados'
       });
       quantities[id] = 1;
-      customOrder.push(id); // al final
+      customOrder.push(id);
       saveState();
       input.value = '';
       renderItems(document.getElementById('searchInput').value);
@@ -908,7 +958,8 @@
         .filter(item => (quantities[item.id] || 0) > 0)
         .map(item => ({
           ...item,
-          qty: quantities[item.id]
+          qty: quantities[item.id],
+          note: notes[item.id] || ''
         }));
     }
 
@@ -923,7 +974,11 @@
           currentCat = item.cat;
           text += `*${currentCat}*\n`;
         }
-        text += `• ${item.qty} × ${item.name}\n`;
+        text += `• ${item.qty} × ${item.name}`;
+        if (item.note) {
+          text += ` _( ${item.note} )_`;
+        }
+        text += `\n`;
       });
       text += `\n_Generado con Lista de la Compra_`;
       return text;
@@ -952,7 +1007,10 @@
           html += `
             <div class="list-item">
               <span class="list-emoji">${item.emoji}</span>
-              <span class="list-name">${item.name}</span>
+              <div class="list-content">
+                <div class="list-name">${item.name}</div>
+                ${item.note ? `<div class="list-note">📝 ${item.note}</div>` : ''}
+              </div>
               <span class="list-qty">× ${item.qty}</span>
             </div>`;
         });
@@ -977,7 +1035,6 @@
       editMode = !editMode;
       document.body.classList.toggle('edit-mode', editMode);
       document.getElementById('btnEdit').classList.toggle('active-edit', editMode);
-      // Re-render para actualizar botones deshabilitados
       renderItems(document.getElementById('searchInput').value);
     }
 
@@ -994,12 +1051,14 @@
       const minus = e.target.closest('.qty-btn.minus');
       const up = e.target.closest('.edit-btn.up');
       const down = e.target.closest('.edit-btn.down');
+      const noteBtn = e.target.closest('.edit-btn.note');
       const del = e.target.closest('.edit-btn.delete');
 
       if (plus) changeQty(plus.dataset.id, 1);
       if (minus) changeQty(minus.dataset.id, -1);
       if (up) moveItem(up.dataset.id, 'up');
       if (down) moveItem(down.dataset.id, 'down');
+      if (noteBtn) editNote(noteBtn.dataset.id);
       if (del) deleteItem(del.dataset.id);
     });
 
