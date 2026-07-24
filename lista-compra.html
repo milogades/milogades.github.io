@@ -7,10 +7,999 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0f172a">
   <title>Lista de la Compra</title>
-  <!-- Versión con productos nuevos fijos -->
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-active: #1e3a5f;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: 100px;
+      line-height: 1.4;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px 10px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-icon:active {
+      background: var(--border);
+    }
+
+    .btn-icon.active-edit {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 11px 16px 11px 42px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+
+    main {
+      padding: 16px;
+    }
+
+    .category {
+      margin-bottom: 24px;
+    }
+
+    .category-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      padding-left: 4px;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 480px) {
+      .items-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .item-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .item-card.active {
+      background: var(--card-active);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .item-emoji {
+      font-size: 1.8rem;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-note {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .qty-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: none;
+      background: var(--border);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      user-select: none;
+    }
+
+    .qty-btn:active {
+      transform: scale(0.92);
+    }
+
+    .qty-btn.minus {
+      background: #3f3f46;
+    }
+
+    .qty-btn.plus {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    .qty-btn.plus:active {
+      background: var(--accent-hover);
+    }
+
+    .qty-value {
+      min-width: 26px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qty-value.zero {
+      color: var(--text-muted);
+    }
+
+    .edit-controls {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      margin-left: 4px;
+    }
+
+    body.edit-mode .edit-controls {
+      display: flex;
+    }
+
+    body.edit-mode .qty-controls {
+      display: none;
+    }
+
+    .edit-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: var(--border);
+      color: var(--text);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .edit-btn:active {
+      transform: scale(0.9);
+    }
+
+    .edit-btn.up, .edit-btn.down {
+      background: #334155;
+    }
+
+    .edit-btn.note {
+      background: #1e3a5f;
+      color: var(--accent);
+    }
+
+    .edit-btn.note.has-note {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    .edit-btn.delete {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    .edit-btn:disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      display: flex;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 12px;
+      border-radius: 14px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card);
+      border-radius: 20px 20px 16px 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-emoji {
+      font-size: 1.5rem;
+      margin-top: 2px;
+    }
+
+    .list-content {
+      flex: 1;
+    }
+
+    .list-name {
+      font-weight: 500;
+    }
+
+    .list-note {
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .list-qty {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1.05rem;
+      margin-top: 2px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .big-emoji {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .add-custom {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .add-custom input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .add-custom input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .add-btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .counter-badge {
+      background: var(--accent);
+      color: #0f172a;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #166534;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .edit-hint {
+      display: none;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    body.edit-mode .edit-hint {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-  <p>Actualizando...</p>
-  <script>location.reload();</script>
+  <header>
+    <div class="header-top">
+      <h1>🛒 Lista de la Compra</h1>
+      <div class="header-actions">
+        <button class="btn-icon" id="btnEdit" title="Editar productos">✏️</button>
+        <button class="btn-icon" id="btnReset" title="Limpiar cantidades">🗑️</button>
+      </div>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" placeholder="Buscar alimento..." autocomplete="off">
+    </div>
+  </header>
+
+  <main>
+    <div class="edit-hint">
+      Modo edición: ↑↓ ordenar · 📝 nota · 🗑️ eliminar
+    </div>
+
+    <div class="add-custom">
+      <input type="text" id="customInput" placeholder="Añadir producto personalizado...">
+      <button class="add-btn" id="btnAddCustom">+</button>
+    </div>
+
+    <div id="itemsContainer"></div>
+  </main>
+
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" id="btnViewList">
+      📋 Ver lista <span class="counter-badge" id="totalBadge" style="display:none">0</span>
+    </button>
+    <button class="btn btn-whatsapp" id="btnWhatsApp" disabled>
+      📲 WhatsApp
+    </button>
+  </div>
+
+  <div class="modal-overlay" id="listModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Tu lista de la compra</h2>
+        <button class="modal-close" id="btnCloseModal">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div style="padding: 12px 20px 20px; display:flex; gap:10px;">
+        <button class="btn btn-whatsapp" id="btnWhatsAppModal" style="flex:1">
+          📲 Enviar por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const DEFAULT_ITEMS = [
+      { id: 'leche', name: 'Leche', emoji: '🥛', cat: 'Lácteos' },
+      { id: 'leche-soja', name: 'Leche de soja', emoji: '🥛', cat: 'Lácteos' },
+      { id: 'yogur', name: 'Yogur', emoji: '🫙', cat: 'Lácteos' },
+      { id: 'queso', name: 'Queso', emoji: '🧀', cat: 'Lácteos' },
+      { id: 'queso-fresco-light', name: 'Queso fresco light', emoji: '🧀', cat: 'Lácteos' },
+      { id: 'queso-havarti-light', name: 'Queso havarti light', emoji: '🧀', cat: 'Lácteos' },
+      { id: 'mantequilla', name: 'Mantequilla', emoji: '🧈', cat: 'Lácteos' },
+      { id: 'huevos', name: 'Huevos', emoji: '🥚', cat: 'Lácteos' },
+      { id: 'claras', name: 'Claras de huevo', emoji: '🥚', cat: 'Lácteos' },
+
+      { id: 'platano', name: 'Plátanos', emoji: '🍌', cat: 'Frutas' },
+      { id: 'manzana', name: 'Manzanas', emoji: '🍎', cat: 'Frutas' },
+      { id: 'naranja', name: 'Naranjas', emoji: '🍊', cat: 'Frutas' },
+      { id: 'fresa', name: 'Fresas', emoji: '🍓', cat: 'Frutas' },
+      { id: 'uva', name: 'Uvas', emoji: '🍇', cat: 'Frutas' },
+      { id: 'limon', name: 'Limones', emoji: '🍋', cat: 'Frutas' },
+
+      { id: 'tomate', name: 'Tomates', emoji: '🍅', cat: 'Verduras' },
+      { id: 'cebolla', name: 'Cebollas', emoji: '🧅', cat: 'Verduras' },
+      { id: 'ajo', name: 'Ajos', emoji: '🧄', cat: 'Verduras' },
+      { id: 'lechuga', name: 'Lechuga', emoji: '🥬', cat: 'Verduras' },
+      { id: 'zanahoria', name: 'Zanahorias', emoji: '🥕', cat: 'Verduras' },
+      { id: 'patata', name: 'Patatas', emoji: '🥔', cat: 'Verduras' },
+      { id: 'pimiento', name: 'Pimientos', emoji: '🫑', cat: 'Verduras' },
+      { id: 'calabacin', name: 'Calabacín', emoji: '🥒', cat: 'Verduras' },
+      { id: 'brocoli', name: 'Brócoli', emoji: '🥦', cat: 'Verduras' },
+
+      { id: 'pollo', name: 'Pollo', emoji: '🍗', cat: 'Carnes y pescado' },
+      { id: 'carne', name: 'Carne de ternera', emoji: '🥩', cat: 'Carnes y pescado' },
+      { id: 'cerdo', name: 'Cerdo', emoji: '🥓', cat: 'Carnes y pescado' },
+      { id: 'jamon', name: 'Jamón', emoji: '🍖', cat: 'Carnes y pescado' },
+      { id: 'salchicha', name: 'Salchichas', emoji: '🌭', cat: 'Carnes y pescado' },
+      { id: 'atun', name: 'Atún', emoji: '🐟', cat: 'Carnes y pescado' },
+      { id: 'salmon', name: 'Salmón', emoji: '🍣', cat: 'Carnes y pescado' },
+      { id: 'boquerones', name: 'Boquerones en vinagre', emoji: '🐟', cat: 'Carnes y pescado' },
+      { id: 'melva', name: 'Melva en aceite', emoji: '🐟', cat: 'Carnes y pescado' },
+      { id: 'atun-lata', name: 'Atún lata', emoji: '🐟', cat: 'Carnes y pescado' },
+
+      { id: 'arroz', name: 'Arroz', emoji: '🍚', cat: 'Despensa' },
+      { id: 'pasta', name: 'Pasta', emoji: '🍝', cat: 'Despensa' },
+      { id: 'aceite', name: 'Aceite de oliva', emoji: '🫒', cat: 'Despensa' },
+      { id: 'sal', name: 'Sal', emoji: '🧂', cat: 'Despensa' },
+      { id: 'azucar', name: 'Azúcar', emoji: '🍬', cat: 'Despensa' },
+      { id: 'harina', name: 'Harina', emoji: '🌾', cat: 'Despensa' },
+      { id: 'cafe', name: 'Café', emoji: '☕', cat: 'Despensa' },
+      { id: 'pan', name: 'Pan', emoji: '🍞', cat: 'Despensa' },
+      { id: 'galletas', name: 'Galletas', emoji: '🍪', cat: 'Despensa' },
+      { id: 'conservas', name: 'Conservas', emoji: '🥫', cat: 'Despensa' },
+      { id: 'crema-cacahuete', name: 'Crema de cacahuete', emoji: '🥜', cat: 'Despensa' },
+      { id: 'copos-avena', name: 'Copos de avena', emoji: '🥣', cat: 'Despensa' },
+      { id: 'almendras', name: 'Almendras', emoji: '🌰', cat: 'Despensa' },
+      { id: 'nueces', name: 'Nueces', emoji: '🥜', cat: 'Despensa' },
+      { id: 'chocolate-negro', name: 'Chocolate negro puro', emoji: '🍫', cat: 'Despensa' },
+      { id: 'tomate-frito', name: 'Tomate frito', emoji: '🍅', cat: 'Despensa' },
+      { id: 'tortitas-wraps', name: 'Tortitas wraps integrales', emoji: '🌯', cat: 'Despensa' },
+
+      { id: 'agua', name: 'Agua', emoji: '💧', cat: 'Bebidas' },
+      { id: 'refresco', name: 'Refresco', emoji: '🥤', cat: 'Bebidas' },
+      { id: 'cerveza', name: 'Cerveza', emoji: '🍺', cat: 'Bebidas' },
+      { id: 'vino', name: 'Vino', emoji: '🍷', cat: 'Bebidas' },
+
+      { id: 'detergente', name: 'Detergente', emoji: '🧴', cat: 'Limpieza' },
+      { id: 'suavizante', name: 'Suavizante', emoji: '🫧', cat: 'Limpieza' },
+      { id: 'papel-higienico', name: 'Papel higiénico', emoji: '🧻', cat: 'Limpieza' },
+      { id: 'papel-cocina', name: 'Papel de cocina', emoji: '🧻', cat: 'Limpieza' },
+      { id: 'jabon', name: 'Jabón de manos', emoji: '🧼', cat: 'Limpieza' },
+      { id: 'lavavajillas', name: 'Lavavajillas', emoji: '🍽️', cat: 'Limpieza' },
+    ];
+
+    let quantities = {};
+    let customItems = [];
+    let deletedIds = [];
+    let customOrder = [];
+    let notes = {};
+    let editMode = false;
+
+    function loadState() {
+      try {
+        const savedQty = localStorage.getItem('listaCompra_qty');
+        const savedCustom = localStorage.getItem('listaCompra_custom');
+        const savedDeleted = localStorage.getItem('listaCompra_deleted');
+        const savedOrder = localStorage.getItem('listaCompra_order');
+        const savedNotes = localStorage.getItem('listaCompra_notes');
+
+        if (savedQty) quantities = JSON.parse(savedQty);
+        if (savedCustom) customItems = JSON.parse(savedCustom);
+        if (savedDeleted) deletedIds = JSON.parse(savedDeleted);
+        if (savedOrder) customOrder = JSON.parse(savedOrder);
+        if (savedNotes) notes = JSON.parse(savedNotes);
+      } catch (e) {}
+    }
+
+    function saveState() {
+      localStorage.setItem('listaCompra_qty', JSON.stringify(quantities));
+      localStorage.setItem('listaCompra_custom', JSON.stringify(customItems));
+      localStorage.setItem('listaCompra_deleted', JSON.stringify(deletedIds));
+      localStorage.setItem('listaCompra_order', JSON.stringify(customOrder));
+      localStorage.setItem('listaCompra_notes', JSON.stringify(notes));
+    }
+
+    function getAllVisibleItems() {
+      const defaults = DEFAULT_ITEMS.filter(item => !deletedIds.includes(item.id));
+      return [...defaults, ...customItems];
+    }
+
+    function ensureOrder() {
+      const visible = getAllVisibleItems();
+      const visibleIds = visible.map(i => i.id);
+
+      if (customOrder.length === 0) {
+        customOrder = visibleIds;
+        saveState();
+        return;
+      }
+
+      customOrder = customOrder.filter(id => visibleIds.includes(id));
+      visibleIds.forEach(id => {
+        if (!customOrder.includes(id)) customOrder.push(id);
+      });
+      saveState();
+    }
+
+    function getOrderedItems() {
+      ensureOrder();
+      const all = getAllVisibleItems();
+      const map = {};
+      all.forEach(item => map[item.id] = item);
+      return customOrder.map(id => map[id]).filter(Boolean);
+    }
+
+    function renderItems(filter = '') {
+      const container = document.getElementById('itemsContainer');
+      const ordered = getOrderedItems();
+      const q = filter.trim().toLowerCase();
+
+      const filtered = ordered.filter(item => !q || item.name.toLowerCase().includes(q));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="big-emoji">🔍</div><p>No se encontraron productos</p></div>`;
+        return;
+      }
+
+      const byCat = {};
+      const catOrder = [];
+      filtered.forEach(item => {
+        if (!byCat[item.cat]) {
+          byCat[item.cat] = [];
+          catOrder.push(item.cat);
+        }
+        byCat[item.cat].push(item);
+      });
+
+      let html = '';
+      catOrder.forEach(cat => {
+        html += `<div class="category"><div class="category-title">${cat}</div><div class="items-grid">`;
+        byCat[cat].forEach(item => {
+          const globalIdx = customOrder.indexOf(item.id);
+          const qty = quantities[item.id] || 0;
+          const active = qty > 0 ? 'active' : '';
+          const zeroClass = qty === 0 ? 'zero' : '';
+          const note = notes[item.id] || '';
+          const hasNote = note.length > 0;
+          const isFirst = globalIdx === 0;
+          const isLast = globalIdx === customOrder.length - 1;
+
+          html += `
+            <div class="item-card ${active}" data-id="${item.id}">
+              <div class="item-emoji">${item.emoji}</div>
+              <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                ${hasNote ? `<div class="item-note">📝 ${note}</div>` : ''}
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn minus" data-id="${item.id}">−</button>
+                <span class="qty-value ${zeroClass}">${qty}</span>
+                <button class="qty-btn plus" data-id="${item.id}">+</button>
+              </div>
+              <div class="edit-controls">
+                <button class="edit-btn up" data-id="${item.id}" ${isFirst ? 'disabled' : ''}>↑</button>
+                <button class="edit-btn down" data-id="${item.id}" ${isLast ? 'disabled' : ''}>↓</button>
+                <button class="edit-btn note ${hasNote ? 'has-note' : ''}" data-id="${item.id}">📝</button>
+                <button class="edit-btn delete" data-id="${item.id}">🗑️</button>
+              </div>
+            </div>`;
+        });
+        html += `</div></div>`;
+      });
+
+      container.innerHTML = html;
+      updateBadge();
+    }
+
+    function updateBadge() {
+      const total = Object.values(quantities).reduce((a, b) => a + b, 0);
+      const badge = document.getElementById('totalBadge');
+      const btnWA = document.getElementById('btnWhatsApp');
+      if (total > 0) {
+        badge.style.display = 'inline';
+        badge.textContent = total;
+        btnWA.disabled = false;
+      } else {
+        badge.style.display = 'none';
+        btnWA.disabled = true;
+      }
+    }
+
+    function changeQty(id, delta) {
+      const current = quantities[id] || 0;
+      const next = Math.max(0, current + delta);
+      if (next === 0) delete quantities[id];
+      else quantities[id] = next;
+      saveState();
+
+      const card = document.querySelector(`.item-card[data-id="${id}"]`);
+      if (card) {
+        const qtyEl = card.querySelector('.qty-value');
+        qtyEl.textContent = next;
+        qtyEl.classList.toggle('zero', next === 0);
+        card.classList.toggle('active', next > 0);
+      }
+      updateBadge();
+    }
+
+    function moveItem(id, direction) {
+      const idx = customOrder.indexOf(id);
+      if (idx === -1) return;
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= customOrder.length) return;
+      [customOrder[idx], customOrder[newIdx]] = [customOrder[newIdx], customOrder[idx]];
+      saveState();
+      renderItems(document.getElementById('searchInput').value);
+    }
+
+    function editNote(id) {
+      const item = getAllVisibleItems().find(i => i.id === id);
+      if (!item) return;
+      const current = notes[id] || '';
+      const text = prompt(`Nota para "${item.name}":\n(deja vacío para borrar)`, current);
+      if (text === null) return;
+      const trimmed = text.trim();
+      if (trimmed) notes[id] = trimmed;
+      else delete notes[id];
+      saveState();
+      renderItems(document.getElementById('searchInput').value);
+      showToast(trimmed ? 'Nota guardada' : 'Nota eliminada');
+    }
+
+    function deleteItem(id) {
+      const item = getAllVisibleItems().find(i => i.id === id);
+      if (!item) return;
+      const isCustom = id.startsWith('custom_');
+      const msg = isCustom ? `¿Eliminar "${item.name}"?` : `¿Eliminar "${item.name}" de la lista?`;
+      if (!confirm(msg)) return;
+
+      customOrder = customOrder.filter(x => x !== id);
+      delete quantities[id];
+      delete notes[id];
+
+      if (isCustom) customItems = customItems.filter(c => c.id !== id);
+      else if (!deletedIds.includes(id)) deletedIds.push(id);
+
+      saveState();
+      renderItems(document.getElementById('searchInput').value);
+      showToast('Producto eliminado');
+    }
+
+    function addCustomItem() {
+      const input = document.getElementById('customInput');
+      const name = input.value.trim();
+      if (!name) return;
+      const id = 'custom_' + Date.now();
+      customItems.push({ id, name, emoji: '🛒', cat: 'Personalizados' });
+      quantities[id] = 1;
+      customOrder.push(id);
+      saveState();
+      input.value = '';
+      renderItems(document.getElementById('searchInput').value);
+      showToast('Producto añadido');
+    }
+
+    function getSelectedList() {
+      return getOrderedItems()
+        .filter(item => (quantities[item.id] || 0) > 0)
+        .map(item => ({ ...item, qty: quantities[item.id], note: notes[item.id] || '' }));
+    }
+
+    function buildListText() {
+      const list = getSelectedList();
+      if (list.length === 0) return '';
+      let text = '🛒 *Lista de la compra*\n\n';
+      let currentCat = '';
+      list.forEach(item => {
+        if (item.cat !== currentCat) {
+          currentCat = item.cat;
+          text += `*${currentCat}*\n`;
+        }
+        text += `• ${item.qty} × ${item.name}`;
+        if (item.note) text += ` _( ${item.note} )_`;
+        text += '\n';
+      });
+      text += '\n_Generado con Lista de la Compra_';
+      return text;
+    }
+
+    function openWhatsApp() {
+      const text = buildListText();
+      if (!text) return;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function showListModal() {
+      const list = getSelectedList();
+      const body = document.getElementById('modalBody');
+      if (list.length === 0) {
+        body.innerHTML = `<div class="empty-state"><div class="big-emoji">🛒</div><p>No has seleccionado nada todavía</p></div>`;
+      } else {
+        let html = '';
+        list.forEach(item => {
+          html += `<div class="list-item">
+            <span class="list-emoji">${item.emoji}</span>
+            <div class="list-content">
+              <div class="list-name">${item.name}</div>
+              ${item.note ? `<div class="list-note">📝 ${item.note}</div>` : ''}
+            </div>
+            <span class="list-qty">× ${item.qty}</span>
+          </div>`;
+        });
+        body.innerHTML = html;
+      }
+      document.getElementById('listModal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('listModal').classList.remove('show');
+    }
+
+    function resetAll() {
+      if (!confirm('¿Seguro que quieres poner todas las cantidades a 0?')) return;
+      quantities = {};
+      saveState();
+      renderItems(document.getElementById('searchInput').value);
+      showToast('Cantidades limpiadas');
+    }
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      document.body.classList.toggle('edit-mode', editMode);
+      document.getElementById('btnEdit').classList.toggle('active-edit', editMode);
+      renderItems(document.getElementById('searchInput').value);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    document.addEventListener('click', (e) => {
+      const plus = e.target.closest('.qty-btn.plus');
+      const minus = e.target.closest('.qty-btn.minus');
+      const up = e.target.closest('.edit-btn.up');
+      const down = e.target.closest('.edit-btn.down');
+      const noteBtn = e.target.closest('.edit-btn.note');
+      const del = e.target.closest('.edit-btn.delete');
+
+      if (plus) changeQty(plus.dataset.id, 1);
+      if (minus) changeQty(minus.dataset.id, -1);
+      if (up) moveItem(up.dataset.id, 'up');
+      if (down) moveItem(down.dataset.id, 'down');
+      if (noteBtn) editNote(noteBtn.dataset.id);
+      if (del) deleteItem(del.dataset.id);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => renderItems(e.target.value));
+    document.getElementById('btnAddCustom').addEventListener('click', addCustomItem);
+    document.getElementById('customInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCustomItem(); });
+    document.getElementById('btnViewList').addEventListener('click', showListModal);
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('listModal').addEventListener('click', (e) => { if (e.target.id === 'listModal') closeModal(); });
+    document.getElementById('btnWhatsApp').addEventListener('click', openWhatsApp);
+    document.getElementById('btnWhatsAppModal').addEventListener('click', openWhatsApp);
+    document.getElementById('btnReset').addEventListener('click', resetAll);
+    document.getElementById('btnEdit').addEventListener('click', toggleEditMode);
+
+    loadState();
+    renderItems();
+  </script>
 </body>
 </html>
